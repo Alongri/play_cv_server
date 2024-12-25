@@ -1,15 +1,15 @@
-var createError = require("http-errors");
-var express = require("express");
+const createError = require("http-errors");
+const express = require("express");
 const cors = require('cors');
-var path = require("path");
-var cookieParser = require("cookie-parser");
-var logger = require("morgan");
+const path = require("path");
+const cookieParser = require("cookie-parser");
+const logger = require("morgan");
 const { routesInit } = require("./routes/confing_route");
 require("./db/mongoConnect");
 require("./routes/confing_route");
 
 
-var app = express();
+const app = express();
 
 // view engine setup
 app.set("views", path.join(__dirname, "views"));
