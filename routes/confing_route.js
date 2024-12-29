@@ -1,10 +1,8 @@
-
 const indexR = require("./index");
 const usersR = require("./users");
 const emailR = require("./email");
-const videoRoutes = require("./videoRoutes"); // Import the video routes
-
-
+const videoR = require("./videos");
+const pictureR = require("./pictures");
 
 exports.corsAccessControl = (app) => {
   app.all("*", function (req, res, next) {
@@ -23,9 +21,9 @@ exports.routesInit = (app) => {
   app.use("/", indexR);
   app.use("/users", usersR);
   app.use("/email", emailR);
-  app.use("/videos", videoRoutes); // Add the video routes here
+  app.use("/videos", videoR);
+  app.use("/pictures", pictureR);
   app.use((req, res) => {
     res.status(404).json({ msg_error: "Url not found , 404!" });
   });
 };
-
