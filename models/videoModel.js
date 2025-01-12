@@ -24,8 +24,12 @@ exports.VideoModel = mongoose.model("videos", videoSchema);
 // Joi Validation for Child Object
 exports.validateChild = (child) => {
   const schema = Joi.object({
+    id_video: Joi.string(),
+    question: Joi.string(),
+    index: Joi.number(),
     answer: Joi.string().min(1).required(),
-    imageLink: Joi.string().uri().required(),
+    // imageLink: Joi.string().uri().required(),
+    imageLink: Joi.string().required(),
   });
   return schema.validate(child);
 };
