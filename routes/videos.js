@@ -7,7 +7,7 @@ const {
 } = require("../models/videoModel");
 const router = express.Router();
 const jwt = require("jsonwebtoken");
-const { auth } = require("../middlewares/auth");
+const { auth, authAdmin } = require("../middlewares/auth");
 
 // Create a new parent video object
 router.post("/video", auth, async (req, res) => {
@@ -100,13 +100,24 @@ router.patch("/nextIndex", async (req, res) => {
   const id_video = req.body.id_video;
   const index = req.body.index;
   console.log(index);
-  
+
   try {
-    const child = await ChildModel.findOne({ id_video:id_video, index: index });
-    if (!child){
+    const child = await ChildModel.findOne({ id_video: id_video, index: index });
+    if (!child) {
       return res.json({ message: "child not found" });
-    } 
+    }
     res.status(200).json(child);
+  } catch (err) {
+    res.status(500).json(err.message);
+  }
+});
+
+// Get all User Videos by ID
+router.get("/allUserVideos/:id", authAdmin, async (req, res) => {
+  try {
+    const video = await VideoModel.find({id_user:req.params.id});
+    if (!video) return res.status(404).json({ message: "Video not found" });
+    res.status(200).json(video);
   } catch (err) {
     res.status(500).json(err.message);
   }
