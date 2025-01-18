@@ -1,64 +1,43 @@
 var express = require("express");
 var router = express.Router();
 const { Storage } = require("@google-cloud/storage");
-const path = require("path");
-const fs = require("fs");
+const multer = require("multer");
 
-/* GET home page. */
-router.get("/", (req, res, next) => {
-  res.json({ msg: "Work from pictures" });
-});
+// Setup multer to handle file uploads
+const storage = multer.memoryStorage();
+const upload = multer({ storage: storage });
 
-/* GET home page. */
-router.post("/", async (req, res, next) => {
-  const bucketName = req.body.bucketName;
-  const localFilePath = req.body.localFilePath;
-  const destFileName = req.body.destFileName;
+// GCP bucket name
+const bucketName = "your-gcp-bucket-name";
 
-  const storage = new Storage();
+/* POST to upload a file. */
+router.post("/upload", upload.single("file"), async (req, res) => {
+  const file = req.file;
+
+  if (!file) {
+    return res.status(400).json({ error: "No file uploaded" });
+  }
+
+  const fileName = `uploads/${Date.now()}-${file.originalname}`;
+  const storageClient = new Storage();
+
   try {
-    // Upload the file to the bucket
-    await storage.bucket(bucketName).upload(localFilePath, {
-      destination: destFileName,
-      public: true, // Makes the file publicly accessible
+    // Upload file to GCP
+    const bucket = storageClient.bucket(bucketName);
+    const fileUpload = bucket.file(fileName);
+    await fileUpload.save(file.buffer, {
+      contentType: file.mimetype,
+      public: true, // Make the file public
     });
 
-    console.log(`${localFilePath} uploaded to ${bucketName}`);
-
-    // Get the public URL
-    const publicUrl = `https://storage.googleapis.com/${bucketName}/${destFileName}`;
-    console.log(`Public URL: ${publicUrl}`);
-
-    return res.json(publicUrl);
+    // Generate the public URL
+    const publicUrl = `https://storage.googleapis.com/${bucketName}/${fileName}`;
+    console.log(`File uploaded successfully: ${publicUrl}`);
+    res.json(publicUrl); // Send the public URL back to the client
   } catch (error) {
     console.error("Error uploading file:", error);
-    throw error;
+    res.status(500).json({ error: "File upload failed" });
   }
 });
-
-// /**
-//  * Uploads a photo to GCP and generates a public URL.
-//  * @param {string} bucketName - The name of your GCP bucket.
-//  * @param {string} localFilePath - The path to the local file to upload.
-//  * @param {string} destFileName - The name for the file in the bucket.
-//  * @returns {string} - The public URL of the uploaded file.
-//  */
-
-// (async () => {
-//   const bucketName = "your-bucket-name"; // Replace with your bucket name
-//   const localFilePath = "./path-to-your-photo.jpg"; // Replace with the file path
-//   const destFileName = "photos/photo.jpg"; // Replace with the desired destination path
-
-//   try {
-//     const publicUrl = await uploadPhotoToGCP(
-//       bucketName,
-//       localFilePath,
-//       destFileName
-//     );
-//     console.log("Uploaded successfully! Access it here:", publicUrl);
-//   } catch (error) {
-//     console.error("Failed to upload photo:", error);
-//   }
-// })();
 
 module.exports = router;
