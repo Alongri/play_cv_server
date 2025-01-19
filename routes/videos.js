@@ -173,4 +173,23 @@ router.delete("/:videoId/child/:childId", async (req, res) => {
   }
 });
 
+/// Get all child objects for a specific video
+router.get("/childobjects/:id", authAdmin, async (req, res) => {
+  try {
+    const childObjects = await ChildModel.find({ id_video: req.params.id });
+    console.log("Fetching child objects for video ID:", req.params.id);
+    if (!childObjects || childObjects.length === 0) {
+      return res.status(404).json({ message: "No child objects found for this video" });
+    }
+    res.status(200).json(childObjects);
+    console.log('Child objects fetched:', childObjects);
+  } catch (err) {
+    console.error("Error fetching child objects:", err);
+    res.status(500).json({ message: "Internal server error" });
+  }
+});
+
+
+
+
 module.exports = router;
