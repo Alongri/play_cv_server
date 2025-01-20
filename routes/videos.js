@@ -16,7 +16,7 @@ router.post("/video", auth, async (req, res) => {
   let token_id = decodeToken._id;
   const { error } = validateVideo(req.body);
   const _dataBody = req.body;
-  _dataBody.id_user = token_id
+  _dataBody.id_user = token_id;
   if (error) return res.status(400).json(error.details);
   try {
     const video = new VideoModel(req.body);
@@ -80,13 +80,15 @@ router.patch("/updatedchild", async (req, res) => {
     console.log(req.body);
     let child = await ChildModel.findOne({ _id: req.body._id });
     console.log(child);
-    console.log(child.answer);
-    if (!child) return res.status(404).json({ message: "Child not found" });
+    if (!child) return res.status(404).json({ message: "Child not found!" });
     child.answer = req.body.answer;
     child.imageLink = req.body.imageLink;
     console.log(child);
 
-    const updatedChild = await ChildModel.findByIdAndUpdate(req.body._id, child);
+    const updatedChild = await ChildModel.findByIdAndUpdate(
+      req.body._id,
+      child
+    );
     console.log(updatedChild);
     res.status(200).json(updatedChild);
   } catch (err) {
@@ -94,15 +96,20 @@ router.patch("/updatedchild", async (req, res) => {
   }
 });
 
-
 // Check for information on the next index
 router.patch("/nextIndex", async (req, res) => {
   const id_video = req.body.id_video;
   const index = req.body.index;
   console.log(index);
+  console.log(id_video);
 
   try {
-    const child = await ChildModel.findOne({ id_video: id_video, index: index });
+    const child = await ChildModel.findOne({
+      id_video: id_video,
+      index: index,
+    });
+    console.log(child);
+
     if (!child) {
       return res.json({ message: "child not found" });
     }
@@ -115,7 +122,7 @@ router.patch("/nextIndex", async (req, res) => {
 // Get all User Videos by ID
 router.get("/allUserVideos/:id", authAdmin, async (req, res) => {
   try {
-    const video = await VideoModel.find({id_user:req.params.id});
+    const video = await VideoModel.find({ id_user: req.params.id });
     if (!video) return res.status(404).json({ message: "Video not found" });
     res.status(200).json(video);
   } catch (err) {
@@ -179,17 +186,16 @@ router.get("/childobjects/:id", authAdmin, async (req, res) => {
     const childObjects = await ChildModel.find({ id_video: req.params.id });
     console.log("Fetching child objects for video ID:", req.params.id);
     if (!childObjects || childObjects.length === 0) {
-      return res.status(404).json({ message: "No child objects found for this video" });
+      return res
+        .status(404)
+        .json({ message: "No child objects found for this video" });
     }
     res.status(200).json(childObjects);
-    console.log('Child objects fetched:', childObjects);
+    console.log("Child objects fetched:", childObjects);
   } catch (err) {
     console.error("Error fetching child objects:", err);
     res.status(500).json({ message: "Internal server error" });
   }
 });
-
-
-
 
 module.exports = router;
