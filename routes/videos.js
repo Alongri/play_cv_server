@@ -119,8 +119,22 @@ router.patch("/nextIndex", async (req, res) => {
   }
 });
 
-// Get all User Videos by ID
-router.get("/allUserVideos/:id", authAdmin, async (req, res) => {
+// Get all User Videos by ID for user
+router.get("/allUserVideos", auth, async (req, res) => {
+  try {
+    let token = req.header("x-api-key");
+    let decodeToken = jwt.verify(token, process.env.JWT_SECRET);
+    let token_id = decodeToken._id;
+    const video = await VideoModel.find({ id_user: token_id });
+    if (!video) return res.status(404).json({ message: "Video not found" });
+    res.status(200).json(video);
+  } catch (err) {
+    res.status(500).json(err.message);
+  }
+});
+
+// Get all User Videos by ID for admin
+router.get("/allUserVideosAdmin/:id", authAdmin, async (req, res) => {
   try {
     const video = await VideoModel.find({ id_user: req.params.id });
     if (!video) return res.status(404).json({ message: "Video not found" });
@@ -129,6 +143,12 @@ router.get("/allUserVideos/:id", authAdmin, async (req, res) => {
     res.status(500).json(err.message);
   }
 });
+
+
+
+
+
+
 
 //
 //

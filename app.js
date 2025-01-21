@@ -4,9 +4,9 @@ const cors = require('cors');
 const path = require("path");
 const cookieParser = require("cookie-parser");
 const logger = require("morgan");
-const { routesInit } = require("./routes/confing_route");
+const { routesInit } = require("./routes/config_route");
 require("./db/mongoConnect");
-require("./routes/confing_route");
+require("./routes/config_route");
 
 
 const app = express();
