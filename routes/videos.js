@@ -29,16 +29,13 @@ router.post("/video", auth, async (req, res) => {
 
 // Add a new child object to a parent video
 router.post("/child", async (req, res) => {
-  // const error = validateChild(req.body);
-  // if (error) {
-  //   console.log(error);
-  //   return res.status(400).json(error.details);
-  // }
   try {
     const video = await VideoModel.findById(req.body.id_video);
     if (!video) return res.status(404).json({ message: "Video not found" });
     console.log(video);
     const newChild = new ChildModel(req.body);
+    // ////
+    newChild.imageLink="https://w.wallhaven.cc/full/o5/wallhaven-o5ov3l.jpg";
     let dataChild = await newChild.save();
     console.log(dataChild);
 
@@ -60,7 +57,6 @@ router.patch("/child", async (req, res) => {
   console.log(req.body);
   console.log(id_video);
   console.log(index);
-
   try {
     const child = await ChildModel.findOne({ id_video, index });
     console.log(child);
@@ -82,7 +78,9 @@ router.patch("/updatedchild", async (req, res) => {
     console.log(child);
     if (!child) return res.status(404).json({ message: "Child not found!" });
     child.answer = req.body.answer;
-    child.imageLink = req.body.imageLink;
+    // child.imageLink = req.body.imageLink;
+    ////
+    child.imageLink = "https://w.wallhaven.cc/full/o5/wallhaven-o5ov3l.jpg";
     console.log(child);
 
     const updatedChild = await ChildModel.findByIdAndUpdate(
