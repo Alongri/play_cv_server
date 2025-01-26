@@ -35,7 +35,7 @@ router.post("/child", async (req, res) => {
     console.log(video);
     const newChild = new ChildModel(req.body);
     // ////
-    newChild.imageLink="https://w.wallhaven.cc/full/o5/wallhaven-o5ov3l.jpg";
+    newChild.imageLink = "https://w.wallhaven.cc/full/o5/wallhaven-o5ov3l.jpg";
     let dataChild = await newChild.save();
     console.log(dataChild);
 
@@ -142,11 +142,16 @@ router.get("/allUserVideosAdmin/:id", authAdmin, async (req, res) => {
   }
 });
 
-
-
-
-
-
+// Get all Childs by ID video
+// router.get("/allchilds/:id", auth, async (req, res) => {
+//   try {
+//     const allChilds = await ChildModel.find({ id_video: req.params.id });
+//     if (!allChilds) return res.status(404).json({ message: "Video not found" });
+//     res.status(200).json(allChilds);
+//   } catch (err) {
+//     res.status(500).json(err.message);
+//   }
+// });
 
 //
 //
@@ -181,25 +186,25 @@ router.get("/:id", async (req, res) => {
 });
 
 // Delete a specific child object by ID
-router.delete("/:videoId/child/:childId", async (req, res) => {
-  try {
-    const video = await VideoModel.findById(req.params.videoId);
-    if (!video) return res.status(404).json({ message: "Video not found" });
+// router.delete("/:videoId/child/:childId", async (req, res) => {
+//   try {
+//     const video = await VideoModel.findById(req.params.videoId);
+//     if (!video) return res.status(404).json({ message: "Video not found" });
 
-    const child = video.childObjects.id(req.params.childId);
-    if (!child) return res.status(404).json({ message: "Child not found" });
+//     const child = video.childObjects.id(req.params.childId);
+//     if (!child) return res.status(404).json({ message: "Child not found" });
 
-    child.remove();
-    await video.save();
+//     child.remove();
+//     await video.save();
 
-    res.status(200).json(video);
-  } catch (err) {
-    res.status(500).json(err.message);
-  }
-});
+//     res.status(200).json(video);
+//   } catch (err) {
+//     res.status(500).json(err.message);
+//   }
+// });
 
 /// Get all child objects for a specific video
-router.get("/childobjects/:id", authAdmin, async (req, res) => {
+router.get("/childobjects/:id", auth, async (req, res) => {
   try {
     const childObjects = await ChildModel.find({ id_video: req.params.id });
     console.log("Fetching child objects for video ID:", req.params.id);
