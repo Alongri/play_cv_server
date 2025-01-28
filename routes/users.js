@@ -18,6 +18,18 @@ router.get("/", authAdmin, async (req, res) => {
   res.json(data);
 });
 
+// check if the user have a good token
+router.get("/checkToken", auth, async (req, res) => {
+  console.log("aaaaa");  
+  res.json(true);
+});
+
+// check if the user admin
+router.get("/checkTokenAdmin", authAdmin, async (req, res) => {
+  res.json(true);
+});
+
+
 /* GET single user by id */
 router.get("/single/:userId", async (req, res) => {
   try {
@@ -44,10 +56,7 @@ router.get("/myInfo", auth, async (req, res) => {
   }
 });
 
-// check if the user have a good token
-router.get("/checkToken", auth, async (req, res) => {
-  res.json(true);
-});
+
 
 // Checks if the user Token is an admin
 router.get("/checkTokenAdmin", authAdmin, async (req, res) => {

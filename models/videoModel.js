@@ -1,5 +1,6 @@
 const mongoose = require("mongoose");
 const Joi = require("joi");
+const { getMaxListeners } = require("nodemailer/lib/xoauth2");
 
 // Child Schema
 const childSchema = new mongoose.Schema({
@@ -27,7 +28,7 @@ exports.validateChild = (child) => {
     id_video: Joi.string(),
     question: Joi.string(),
     index: Joi.number(),
-    answer: Joi.string().min(1).required(),
+    answer: Joi.string().min(1).max(50).required(),
     // imageLink: Joi.string().uri().required(),
     imageLink: Joi.string().required(),
   });
