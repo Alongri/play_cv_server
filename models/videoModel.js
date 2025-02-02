@@ -38,7 +38,7 @@ exports.validateChild = (child) => {
 // Joi Validation for Parent Object
 exports.validateVideo = (video) => {
   const schema = Joi.object({
-    title: Joi.string().min(3).required(),
+    title: Joi.string().min(2).required(),
   });
   return schema.validate(video);
 };
