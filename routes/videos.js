@@ -44,7 +44,36 @@ router.post("/child", async (req, res) => {
       { _id: dataChild.id_video },
       video
     );
+    // if(req.body.index == 11){
+    // let ar = {};
+    //    gpt(ar)
+    // }
     res.status(201).json(dataChild);
+  } catch (err) {
+    res.status(500).json(err.message);
+  }
+});
+
+//
+//
+// test
+router.get("/gpt", async (req, res) => {
+  try {
+    const video = await VideoModel.findById("679673b05f710e3aa4d9a8db");
+    const childObjects = await ChildModel.find({
+      id_video: "679673b05f710e3aa4d9a8db",
+    });
+
+    //  לנקות רק שאלות תשובות
+    let ar = childObjects;
+    //
+    let recommend = gptrecommend(ar);
+    video.recommend = recommend;
+    const updatedVideo = await VideoModel.findByIdAndUpdate(
+      "679673b05f710e3aa4d9a8db",
+      video
+    );
+    res.status(201).json(updatedVideo);
   } catch (err) {
     res.status(500).json(err.message);
   }
