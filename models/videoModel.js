@@ -17,6 +17,7 @@ const videoSchema = new mongoose.Schema({
   id_user: String,
   title: String,
   childObjects: Array,
+  recommend: String,
   createdAt: { type: Date, default: Date.now },
 });
 
