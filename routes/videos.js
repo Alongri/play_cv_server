@@ -17,7 +17,7 @@ router.post("/video", auth, async (req, res) => {
   const { error } = validateVideo(req.body);
   const _dataBody = req.body;
   _dataBody.id_user = token_id;
-  if (error) return res.status(400).json(error.details);
+  if (error) return res.status(400).json(error.ValidationError);
   try {
     const video = new VideoModel(req.body);
     const savedVideo = await video.save();
