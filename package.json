@@ -6,7 +6,7 @@
     "start": "node ./bin/www"
   },
   "dependencies": {
-    "@google-cloud/storage": "^7.14.0",
+    "@google-cloud/storage": "^7.15.0",
     "axios": "^1.6.7",
     "bcrypt": "^5.1.1",
     "chai": "^5.1.2",
@@ -26,6 +26,7 @@
     "multer": "^1.4.5-lts.1",
     "nodemailer": "^6.9.8",
     "openai": "^4.83.0",
+    "path": "^0.12.7",
     "sinon": "^19.0.2",
     "supertest": "^7.0.0"
   }
