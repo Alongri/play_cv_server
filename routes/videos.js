@@ -96,44 +96,6 @@ router.post("/child", async (req, res) => {
 
 
 
-// router.get("/gpt", async (req, res) => {
-//   try {
-//     // Fetch the video object directly
-//     const video = await VideoModel.findById("67a4e5dca41825d1daae9749");
-
-//     if (!video) {
-//       return res.status(404).json({ message: "Video not found" });
-//     }
-
-//     // Directly fetch child objects using ChildModel.find
-//     const childObjects = await ChildModel.find({ id_video: video._id });
-
-//     if (!childObjects || childObjects.length === 0) {
-//       return res.status(404).json({ message: "No child objects found for this video" });
-//     }
-
-//     // Map the child objects to questions and answers
-//     const questionsAndAnswers = childObjects.map(obj => ({
-//       question: obj.question,
-//       answer: obj.answer
-//     }));
-
-     
-
-//     // Include questions and answers within the response object
-//     res.status(200).json({
-//       video: {
-//         ...video._doc, // Spread video data correctly
-//       },
-//       questionsAndAnswers
-//     });
-
-//   } catch (err) {
-//     console.error("Error fetching data:", err);
-//     res.status(500).json({ error: err.message });
-//   }
-// });
-
 
 router.get("/gpt", async (req, res) => {
   try {
