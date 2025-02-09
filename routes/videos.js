@@ -10,7 +10,6 @@ const jwt = require("jsonwebtoken");
 const { auth, authAdmin } = require("../middlewares/auth");
 const { determineJobPreference } = require("../middlewares/res_gpt");
 
-
 // Uploading an image to GCP
 
 // const multer = require("multer");
@@ -19,11 +18,11 @@ const { determineJobPreference } = require("../middlewares/res_gpt");
 // const apiStorage = new Storage({ keyFilename: process.env.GCP_API_KEY, });
 // const bucketName = "test_play_cv";
 // const bucket = apiStorage.bucket(bucketName);
-// const uploadStorage = multer.memoryStorage(); 
+// const uploadStorage = multer.memoryStorage();
 // const upload = multer({ storage: uploadStorage });
 // router.post("/uploadimage", upload.single("image"), async (req, res) => {
 //   if (!req.file) return res.status(400).send("No file uploaded.");
-//   const sanitizedFileName = req.file.originalname.replace(/[{}<>:"/\|?*]/g, ''); 
+//   const sanitizedFileName = req.file.originalname.replace(/[{}<>:"/\|?*]/g, '');
 //   const destination = `uploads/${Date.now()}_${sanitizedFileName}`;
 //   try {
 //     const blob = bucket.file(destination);
@@ -47,7 +46,6 @@ const { determineJobPreference } = require("../middlewares/res_gpt");
 //     res.status(500).send("Error uploading file: " + error.message);
 //   }
 // });
-
 
 // Create a new parent video object
 router.post("/video", auth, async (req, res) => {
@@ -80,65 +78,62 @@ router.post("/child", async (req, res) => {
     console.log(dataChild);
 
     video.childObjects.push(dataChild._id);
+
+    if (req.body.index == 11) {
+      const questionsAndAnswers = video.childObjects.map((obj) => ({
+        question: obj.question,
+        answer: obj.answer,
+      }));
+      const gptRecommend = await determineJobPreference(questionsAndAnswers);
+      video.recommend = gptRecommend;
+    }
     let dataVideo = await VideoModel.updateOne(
       { _id: dataChild.id_video },
       video
     );
-    // if(req.body.index == 11){
-    // let ar = {};
-    //    gpt(ar)
-    // }
     res.status(201).json(dataChild);
   } catch (err) {
     res.status(500).json(err.message);
   }
 });
 
+// router.get("/gpt", async (req, res) => {
+//   try {
+//     const video = await VideoModel.findById("67a4e5dca41825d1daae9749");
 
+//     if (!video) {
+//       return res.status(404).json({ message: "Video not found" });
+//     }
 
+//     // Fetch child objects directly
+//     const childObjects = await ChildModel.find({ id_video: video._id });
 
-router.get("/gpt", async (req, res) => {
-  try {
-    const video = await VideoModel.findById("67a4e5dca41825d1daae9749");
+//     if (!childObjects || childObjects.length === 0) {
+//       return res
+//         .status(404)
+//         .json({ message: "No child objects found for this video" });
+//     }
 
-    if (!video) {
-      return res.status(404).json({ message: "Video not found" });
-    }
+//     // Map the child objects to questions and answers
+//     const questionsAndAnswers = childObjects.map((obj) => ({
+//       question: obj.question,
+//       answer: obj.answer,
+//     }));
 
-    // Fetch child objects directly
-    const childObjects = await ChildModel.find({ id_video: video._id });
+//     // Pass questions and answers to the next middleware
+//     req.body.questionsAndAnswers = questionsAndAnswers;
 
-    if (!childObjects || childObjects.length === 0) {
-      return res.status(404).json({ message: "No child objects found for this video" });
-    }
-
-    // Map the child objects to questions and answers
-    const questionsAndAnswers = childObjects.map(obj => ({
-      question: obj.question,
-      answer: obj.answer
-    }));
-
-    // Pass questions and answers to the next middleware
-    req.body.questionsAndAnswers = questionsAndAnswers;
-
-    // Use the job preference middleware
-    determineJobPreference(req, res, () => {
-      res.status(200).json({
-        video: {
-          ...video._doc,
-        },
-        questionsAndAnswers,
-        jobPreference: req.jobPreference,
-      });
-    });
-  } catch (err) {
-    console.error("Error fetching data:", err);
-    res.status(500).json({ error: err.message });
-  }
-});
-
-
-
+//     // Use the job preference middleware
+//     determineJobPreference(req, res, () => {
+//       res.status(200).json({
+//         jobPreference: req.jobPreference,
+//       });
+//     });
+//   } catch (err) {
+//     console.error("Error fetching data:", err);
+//     res.status(500).json({ error: err.message });
+//   }
+// });
 
 // Get a parent child object by id_user and index
 router.patch("/child", async (req, res) => {

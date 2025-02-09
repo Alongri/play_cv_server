@@ -5,12 +5,14 @@ const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
-async function determineJobPreference(req, res, next) {
+async function determineJobPreference(questionsAndAnswers) {
   try {
-    const { questionsAndAnswers } = req.body;
+    // const { questionsAndAnswers } = req.body;
 
     if (!questionsAndAnswers || questionsAndAnswers.length === 0) {
-      return res.status(400).json({ message: "Questions and Answers are required." });
+      return res
+        .status(400)
+        .json({ message: "Questions and Answers are required." });
     }
 
     // Construct the OpenAI prompt with a strict requirement for plain string output
@@ -35,9 +37,9 @@ async function determineJobPreference(req, res, next) {
     // Get the raw response (should be a plain string)
     const jobPreference = response.choices[0].message.content.trim();
 
-    console.log("Job Preference Response:", jobPreference);  // Optional: For debugging
-    req.jobPreference = jobPreference;  // Attach to the request object
-    next();  // Proceed to the next middleware or final response
+    console.log("Job Preference Response:", jobPreference); // Optional: For debugging
+    return jobPreference; // Attach to the request object
+    // next();  // Proceed to the next middleware or final response
   } catch (error) {
     console.error("Error determining job preference:", error.message);
     res.status(500).json({ error: "Internal server error" });
@@ -45,4 +47,3 @@ async function determineJobPreference(req, res, next) {
 }
 
 module.exports = { determineJobPreference };
-
