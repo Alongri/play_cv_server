@@ -8,7 +8,45 @@ const {
 const router = express.Router();
 const jwt = require("jsonwebtoken");
 const { auth, authAdmin } = require("../middlewares/auth");
-const { determineJobPreference } = require("../middlewares/res_gpt");
+
+
+// Uploading an image to GCP
+
+// const { determineJobPreference } = require("../middlewares/res_gpt");
+// const multer = require("multer");
+// const { Storage } = require("@google-cloud/storage");
+// const path = require("path");
+// const apiStorage = new Storage({ keyFilename: process.env.GCP_API_KEY, });
+// const bucketName = "test_play_cv";
+// const bucket = apiStorage.bucket(bucketName);
+// const uploadStorage = multer.memoryStorage(); 
+// const upload = multer({ storage: uploadStorage });
+// router.post("/uploadimage", upload.single("image"), async (req, res) => {
+//   if (!req.file) return res.status(400).send("No file uploaded.");
+//   const sanitizedFileName = req.file.originalname.replace(/[{}<>:"/\|?*]/g, ''); 
+//   const destination = `uploads/${Date.now()}_${sanitizedFileName}`;
+//   try {
+//     const blob = bucket.file(destination);
+//     const blobStream = blob.createWriteStream({
+//       resumable: false,
+//       public: true,
+//       metadata: { contentType: req.file.mimetype },
+//     });
+
+//     blobStream.on("error", (err) => {
+//       res.status(500).send("Upload error: " + err.message);
+//     });
+
+//     blobStream.on("finish", () => {
+//       const fileUrl = `https://storage.googleapis.com/${bucketName}/${destination}`;
+//       res.json({ url: fileUrl });
+//     });
+
+//     blobStream.end(req.file.buffer);
+//   } catch (error) {
+//     res.status(500).send("Error uploading file: " + error.message);
+//   }
+// });
 
 
 // Create a new parent video object
