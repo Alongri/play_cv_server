@@ -8,11 +8,11 @@ const {
 const router = express.Router();
 const jwt = require("jsonwebtoken");
 const { auth, authAdmin } = require("../middlewares/auth");
+const { determineJobPreference } = require("../middlewares/res_gpt");
 
 
 // Uploading an image to GCP
 
-// const { determineJobPreference } = require("../middlewares/res_gpt");
 // const multer = require("multer");
 // const { Storage } = require("@google-cloud/storage");
 // const path = require("path");
