@@ -8,6 +8,8 @@ const {
 const router = express.Router();
 const jwt = require("jsonwebtoken");
 const { auth, authAdmin } = require("../middlewares/auth");
+const { determineJobPreference } = require("../middlewares/res_gpt");
+
 
 // Create a new parent video object
 router.post("/video", auth, async (req, res) => {
@@ -54,30 +56,89 @@ router.post("/child", async (req, res) => {
   }
 });
 
-//
-//
-// test
+
+
+// router.get("/gpt", async (req, res) => {
+//   try {
+//     // Fetch the video object directly
+//     const video = await VideoModel.findById("67a4e5dca41825d1daae9749");
+
+//     if (!video) {
+//       return res.status(404).json({ message: "Video not found" });
+//     }
+
+//     // Directly fetch child objects using ChildModel.find
+//     const childObjects = await ChildModel.find({ id_video: video._id });
+
+//     if (!childObjects || childObjects.length === 0) {
+//       return res.status(404).json({ message: "No child objects found for this video" });
+//     }
+
+//     // Map the child objects to questions and answers
+//     const questionsAndAnswers = childObjects.map(obj => ({
+//       question: obj.question,
+//       answer: obj.answer
+//     }));
+
+     
+
+//     // Include questions and answers within the response object
+//     res.status(200).json({
+//       video: {
+//         ...video._doc, // Spread video data correctly
+//       },
+//       questionsAndAnswers
+//     });
+
+//   } catch (err) {
+//     console.error("Error fetching data:", err);
+//     res.status(500).json({ error: err.message });
+//   }
+// });
+
+
 router.get("/gpt", async (req, res) => {
   try {
-    const video = await VideoModel.findById("679673b05f710e3aa4d9a8db");
-    const childObjects = await ChildModel.find({
-      id_video: "679673b05f710e3aa4d9a8db",
-    });
+    const video = await VideoModel.findById("67a4e5dca41825d1daae9749");
 
-    //  לנקות רק שאלות תשובות
-    let ar = childObjects;
-    //
-    let recommend = gptrecommend(ar);
-    video.recommend = recommend;
-    const updatedVideo = await VideoModel.findByIdAndUpdate(
-      "679673b05f710e3aa4d9a8db",
-      video
-    );
-    res.status(201).json(updatedVideo);
+    if (!video) {
+      return res.status(404).json({ message: "Video not found" });
+    }
+
+    // Fetch child objects directly
+    const childObjects = await ChildModel.find({ id_video: video._id });
+
+    if (!childObjects || childObjects.length === 0) {
+      return res.status(404).json({ message: "No child objects found for this video" });
+    }
+
+    // Map the child objects to questions and answers
+    const questionsAndAnswers = childObjects.map(obj => ({
+      question: obj.question,
+      answer: obj.answer
+    }));
+
+    // Pass questions and answers to the next middleware
+    req.body.questionsAndAnswers = questionsAndAnswers;
+
+    // Use the job preference middleware
+    determineJobPreference(req, res, () => {
+      res.status(200).json({
+        video: {
+          ...video._doc,
+        },
+        questionsAndAnswers,
+        jobPreference: req.jobPreference,
+      });
+    });
   } catch (err) {
-    res.status(500).json(err.message);
+    console.error("Error fetching data:", err);
+    res.status(500).json({ error: err.message });
   }
 });
+
+
+
 
 // Get a parent child object by id_user and index
 router.patch("/child", async (req, res) => {
