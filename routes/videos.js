@@ -134,6 +134,53 @@ router.post("/child", async (req, res) => {
 //     res.status(500).json({ error: err.message });
 //   }
 // });
+const multer = require("multer");
+const { Storage } = require("@google-cloud/storage");
+
+const apiStorage = new Storage({ keyFilename: process.env.GCP_API_KEY });
+const bucketName = "test_play_cv";
+const bucket = apiStorage.bucket(bucketName);
+
+const upload = multer({ storage: multer.memoryStorage() });
+
+router.post("/uploadimage", upload.single("image"), async (req, res) => {
+  if (!req.file) return res.status(400).send("No file uploaded.");
+
+  console.log("Original filename:", req.file.originalname);
+
+  let sanitizedFileName = req.file.originalname
+    .replace(/[{}<>:"/\|?*\s]+/g, "") // Remove special characters and spaces
+    .replace(/\.+$/, ""); // Remove trailing dots
+
+  console.log("Sanitized filename:", sanitizedFileName);
+
+  const destination = `uploads/${Date.now()}_${sanitizedFileName}`;
+  console.log("Destination Path:", destination);
+
+  try {
+    const blob = bucket.file(destination);
+    const blobStream = blob.createWriteStream({
+      resumable: false,
+      public: true,
+      metadata: { contentType: req.file.mimetype },
+    });
+
+    blobStream.on("error", (err) => {
+      console.error("Upload error:", err);
+      res.status(500).send("Upload error: " + err.message);
+    });
+
+    blobStream.on("finish", () => {
+      const fileUrl = `https://storage.googleapis.com/${bucketName}/${destination}`;
+      res.json({ url: fileUrl });
+    });
+
+    blobStream.end(req.file.buffer);
+  } catch (error) {
+    console.error("Error uploading file:", error);
+    res.status(500).send("Error uploading file: " + error.message);
+  }
+});
 
 // Get a parent child object by id_user and index
 router.patch("/child", async (req, res) => {
