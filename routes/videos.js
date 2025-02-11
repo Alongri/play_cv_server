@@ -9,6 +9,9 @@ const router = express.Router();
 const jwt = require("jsonwebtoken");
 const { auth, authAdmin } = require("../middlewares/auth");
 const { determineJobPreference } = require("../middlewares/res_gpt");
+const path = require('path');
+const multer = require("multer");
+const { Storage } = require("@google-cloud/storage");
 
 // Create a new parent video object
 router.post("/video", auth, async (req, res) => {
@@ -35,8 +38,7 @@ router.post("/child", async (req, res) => {
     if (!video) return res.status(404).json({ message: "Video not found" });
     console.log(video);
     const newChild = new ChildModel(req.body);
-    // ////
-    newChild.imageLink = "https://w.wallhaven.cc/full/o5/wallhaven-o5ov3l.jpg";
+
     let dataChild = await newChild.save();
     console.log(dataChild);
 
@@ -60,60 +62,33 @@ router.post("/child", async (req, res) => {
   }
 });
 
-// router.get("/gpt", async (req, res) => {
-//   try {
-//     const video = await VideoModel.findById("67a4e5dca41825d1daae9749");
 
-//     if (!video) {
-//       return res.status(404).json({ message: "Video not found" });
-//     }
 
-//     // Fetch child objects directly
-//     const childObjects = await ChildModel.find({ id_video: video._id });
 
-//     if (!childObjects || childObjects.length === 0) {
-//       return res
-//         .status(404)
-//         .json({ message: "No child objects found for this video" });
-//     }
+// Determine the path of your gcp.json key file dynamically
+const dirPath = __dirname.split("\\routes")[0];
+const apiStorage = new Storage({
+  keyFilename: path.join(dirPath, 'gcp.json'),  // path to the service account key file
+  projectId: 'refined-ensign-450411-p2',       // Specify your project ID
+});
 
-//     // Map the child objects to questions and answers
-//     const questionsAndAnswers = childObjects.map((obj) => ({
-//       question: obj.question,
-//       answer: obj.answer,
-//     }));
-
-//     // Pass questions and answers to the next middleware
-//     req.body.questionsAndAnswers = questionsAndAnswers;
-
-//     // Use the job preference middleware
-//     determineJobPreference(req, res, () => {
-//       res.status(200).json({
-//         jobPreference: req.jobPreference,
-//       });
-//     });
-//   } catch (err) {
-//     console.error("Error fetching data:", err);
-//     res.status(500).json({ error: err.message });
-//   }
-// });
-const multer = require("multer");
-const { Storage } = require("@google-cloud/storage");
-
-const apiStorage = new Storage({ keyFilename: process.env.GCP_API_KEY });
-const bucketName = "test_play_cv";
+const bucketName = "play_cv_bucket";
 const bucket = apiStorage.bucket(bucketName);
 
 const upload = multer({ storage: multer.memoryStorage() });
 
 router.post("/uploadimage", upload.single("image"), async (req, res) => {
-  if (!req.file) return res.status(400).send("No file uploaded.");
+  // Ensure a file is uploaded
+  if (!req.file) {
+    return res.status(400).send("No file uploaded.");
+  }
 
   console.log("Original filename:", req.file.originalname);
 
-  let sanitizedFileName = req.file.originalname
-    .replace(/[{}<>:"/\|?*\s]+/g, "") // Remove special characters and spaces
-    .replace(/\.+$/, ""); // Remove trailing dots
+  // Sanitize the file name by removing special characters and trimming any trailing dots
+  const sanitizedFileName = req.file.originalname
+    .replace(/[{}<>:"/\|?*\s]+/g, "")  // Remove special characters and spaces
+    .replace(/\.+$/, "");  // Remove trailing dots
 
   console.log("Sanitized filename:", sanitizedFileName);
 
@@ -121,29 +96,41 @@ router.post("/uploadimage", upload.single("image"), async (req, res) => {
   console.log("Destination Path:", destination);
 
   try {
+    // Create a file object in the bucket
     const blob = bucket.file(destination);
+    
+    // Create a write stream to upload the file to the bucket
     const blobStream = blob.createWriteStream({
       resumable: false,
-      public: true,
-      metadata: { contentType: req.file.mimetype },
+      metadata: {
+        contentType: req.file.mimetype, // Ensure the correct MIME type is set for the uploaded file
+      },
     });
 
+    // Handle stream errors
     blobStream.on("error", (err) => {
       console.error("Upload error:", err);
-      res.status(500).send("Upload error: " + err.message);
+      return res.status(500).send("Upload error: " + err.message);
     });
 
+    // Handle successful file upload
     blobStream.on("finish", () => {
       const fileUrl = `https://storage.googleapis.com/${bucketName}/${destination}`;
-      res.json({ url: fileUrl });
+      return res.json({ url: fileUrl });
     });
 
+    // Start the upload by passing the file buffer
     blobStream.end(req.file.buffer);
   } catch (error) {
     console.error("Error uploading file:", error);
-    res.status(500).send("Error uploading file: " + error.message);
+    return res.status(500).send("Error uploading file: " + error.message);
   }
 });
+
+
+
+
+
 
 // Get a parent child object by id_user and index
 router.patch("/child", async (req, res) => {
@@ -279,24 +266,6 @@ router.get("/:id", async (req, res) => {
     res.status(500).json(err.message);
   }
 });
-
-// Delete a specific child object by ID
-// router.delete("/:videoId/child/:childId", async (req, res) => {
-//   try {
-//     const video = await VideoModel.findById(req.params.videoId);
-//     if (!video) return res.status(404).json({ message: "Video not found" });
-
-//     const child = video.childObjects.id(req.params.childId);
-//     if (!child) return res.status(404).json({ message: "Child not found" });
-
-//     child.remove();
-//     await video.save();
-
-//     res.status(200).json(video);
-//   } catch (err) {
-//     res.status(500).json(err.message);
-//   }
-// });
 
 /// Get all child objects for a specific video
 router.get("/childobjects/:id", auth, async (req, res) => {
