@@ -21,9 +21,13 @@ async function determineJobPreference(questionsAndAnswers) {
       messages: [
         {
           role: "system",
-          content: `You are a career advisor. Based on the given array of questions and answers, return only the most suitable job title(s) for the user as a plain string. 
-                    Each job title should have a maximum of two words. 
-                    If two suitable job titles are recommended, separate them with a comma. Do not include any additional text, explanations, or formatting—return only the job title(s) as a plain string.`,
+          content: `You are a strict career advisor. Based on the given array of questions and answers, return the most challenging yet suitable job title(s) for the user.
+                    - Each job title must be exactly **two words**.
+                    - If the provided answers lack clarity, invent a **general role**.
+                    - Return the response in this exact format:  
+                      **"the suitable job suggestion is: [Job Title]"**  
+                    - If multiple job titles are suitable, separate them with commas.
+                    - Do not include explanations, formatting, or extra text—only the specified response.`,
         },
         {
           role: "user",
@@ -33,6 +37,7 @@ async function determineJobPreference(questionsAndAnswers) {
         },
       ],
     });
+    
 
     // Get the raw response (should be a plain string)
     const jobPreference = response.choices[0].message.content.trim();
