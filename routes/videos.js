@@ -42,14 +42,9 @@ router.post("/child", async (req, res) => {
   try {
     const video = await VideoModel.findById(req.body.id_video);
     if (!video) return res.status(404).json({ message: "Video not found" });
-    console.log(video);
     const newChild = new ChildModel(req.body);
-
     let dataChild = await newChild.save();
-    console.log(dataChild);
-
     video.childObjects.push(dataChild._id);
-
     if (req.body.index == 11) {
       const questionsAndAnswers = video.childObjects.map((obj) => ({
         question: obj.question,

@@ -21,9 +21,9 @@ async function determineJobPreference(questionsAndAnswers) {
       messages: [
         {
           role: "system",
-          content: `You are a strict career advisor. Based on the given array of questions and answers, return the most challenging yet suitable job title(s) for the user.
-                    - Each job title must be exactly **two words**.
-                    - If the provided answers lack clarity, invent a **general role**.
+          content: `You are a career advisor. Based on the given array of questions and answers, return up to three most suitable job title(s) for the user.
+                    - Each job title must be up to **three words**.
+                    - If the provided answers lack clarity, advise on the closest relevant roles you believe may be suitable for the user based on his/her list of answers.
                     - Return the response in this exact format:  
                       **"the suitable job suggestion is: [Job Title]"**  
                     - If multiple job titles are suitable, separate them with commas.
