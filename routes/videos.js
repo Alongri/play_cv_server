@@ -14,7 +14,6 @@ const multer = require("multer");
 const ffmpeg = require("ffmpeg");
 const fs = require("fs");
 const { Storage } = require("@google-cloud/storage");
-const { log } = require("console");
 
 const TEMP_FOLDER = "./uploads";
 if (!fs.existsSync(TEMP_FOLDER)) fs.mkdirSync(TEMP_FOLDER);
@@ -246,101 +245,101 @@ router.get("/childobjects/:id", auth, async (req, res) => {
   }
 });
 
-router.patch("/generate", async (req, res) => {
-  try {
-    // const childObjects = await ChildModel.find({ id_video: req.params.id });
-    // if (!childObjects || childObjects.length === 0) {
-    //   return res.status(404).json({ message: "Child not found!" });
-    // }
-    const data_check = req.body.ar;
-    console.log(data_check);
+// router.patch("/generate", async (req, res) => {
+//   try {
+//     // const childObjects = await ChildModel.find({ id_video: req.params.id });
+//     // if (!childObjects || childObjects.length === 0) {
+//     //   return res.status(404).json({ message: "Child not found!" });
+//     // }
+//     const data_check = req.body.ar;
+//     console.log(data_check);
 
-    const filteredData = data_check.map(({ answer, imageLink }) => ({
-      answer,
-      imageLink,
-    }));
-    console.log(filteredData);
+//     const filteredData = data_check.map(({ answer, imageLink }) => ({
+//       answer,
+//       imageLink,
+//     }));
+//     console.log(filteredData);
 
-    if (filteredData.length === 0) {
-      return res.status(400).json({ message: "No valid data found!" });
-    }
+//     if (filteredData.length === 0) {
+//       return res.status(400).json({ message: "No valid data found!" });
+//     }
 
-    const outputFile = path.join(
-      TEMP_FOLDER,
-      `output_video_${req.body.ar[0]._id}.mp4`
-    );
-    const tempFolder = path.join(TEMP_FOLDER, `images_${req.body.ar[0]._id}`);
-    if (!fs.existsSync(tempFolder)) fs.mkdirSync(tempFolder);
+//     const outputFile = path.join(
+//       TEMP_FOLDER,
+//       `output_video_${req.body.ar[0]._id}.mp4`
+//     );
+//     const tempFolder = path.join(TEMP_FOLDER, `images_${req.body.ar[0]._id}`);
+//     if (!fs.existsSync(tempFolder)) fs.mkdirSync(tempFolder);
 
-    const imagePaths = [];
+//     const imagePaths = [];
 
-    // Process each image: Add answer as overlay text
-    await Promise.all(
-      filteredData.map((item, index) => {
-        return new Promise((resolve, reject) => {
-          const tempImage = path.join(tempFolder, `temp_${index}.jpg`);
-          imagePaths.push(tempImage);
+//     // Process each image: Add answer as overlay text
+//     await Promise.all(
+//       filteredData.map((item, index) => {
+//         return new Promise((resolve, reject) => {
+//           const tempImage = path.join(tempFolder, `temp_${index}.jpg`);
+//           imagePaths.push(tempImage);
 
-          ffmpeg(item.imageLink)
-            .outputOptions([
-              `-vf drawtext="text='${item.answer}': fontcolor=white: fontsize=24: x=(w-text_w)/2: y=h-50"`,
-              "-q:v 1",
-            ])
-            .output(tempImage)
-            .on("end", resolve)
-            .on("error", reject)
-            .run();
-        });
-      })
-    );
+//           ffmpeg(item.imageLink)
+//             .outputOptions([
+//               `-vf drawtext="text='${item.answer}': fontcolor=white: fontsize=24: x=(w-text_w)/2: y=h-50"`,
+//               "-q:v 1",
+//             ])
+//             .output(tempImage)
+//             .on("end", resolve)
+//             .on("error", reject)
+//             .run();
+//         });
+//       })
+//     );
 
-    // Create an input file for FFmpeg
-    const inputFile = path.join(tempFolder, "input.txt");
-    const inputContent = imagePaths
-      .map((imgPath) => `file '${imgPath}'\nduration 3`)
-      .join("\n");
-    fs.writeFileSync(inputFile, inputContent);
+//     // Create an input file for FFmpeg
+//     const inputFile = path.join(tempFolder, "input.txt");
+//     const inputContent = imagePaths
+//       .map((imgPath) => `file '${imgPath}'\nduration 3`)
+//       .join("\n");
+//     fs.writeFileSync(inputFile, inputContent);
 
-    // Generate video from images
-    ffmpeg()
-      .input(inputFile)
-      .inputOptions("-f concat -safe 0")
-      .output(outputFile)
-      .on("end", () => {
-        console.log("Video generated successfully:", outputFile);
-        res.status(200).json({ videoUrl: `/download/${req.params.id}` });
-      })
-      .on("error", (err) => {
-        console.error("FFmpeg Error:", err);
-        res.status(500).json({ error: "Error generating video" });
-      })
-      .run();
-  } catch (err) {
-    console.log(err);
-    res.status(500).json({ error: err.message });
-  }
-});
+//     // Generate video from images
+//     ffmpeg()
+//       .input(inputFile)
+//       .inputOptions("-f concat -safe 0")
+//       .output(outputFile)
+//       .on("end", () => {
+//         console.log("Video generated successfully:", outputFile);
+//         res.status(200).json({ videoUrl: `/download/${req.params.id}` });
+//       })
+//       .on("error", (err) => {
+//         console.error("FFmpeg Error:", err);
+//         res.status(500).json({ error: "Error generating video" });
+//       })
+//       .run();
+//   } catch (err) {
+//     console.log(err);
+//     res.status(500).json({ error: err.message });
+//   }
+// });
 
-// Serve video for download
-router.get("/download/:id", (req, res) => {
-  const outputFile = path.join(
-    TEMP_FOLDER,
-    `output_video_${req.params.id}.mp4`
-  );
+// // Serve video for download
+// router.get("/download/:id", (req, res) => {
+//   const outputFile = path.join(
+//     TEMP_FOLDER,
+//     `output_video_${req.params.id}.mp4`
+//   );
 
-  if (!fs.existsSync(outputFile)) {
-    return res.status(404).json({ message: "Video not found!" });
-  }
+//   if (!fs.existsSync(outputFile)) {
+//     return res.status(404).json({ message: "Video not found!" });
+//   }
 
-  res.download(outputFile, `generated_video_${req.params.id}.mp4`, (err) => {
-    if (err) console.error("Error sending video:", err);
+//   res.download(outputFile, `generated_video_${req.params.id}.mp4`, (err) => {
+//     if (err) console.error("Error sending video:", err);
 
-    // Optional cleanup
-    setTimeout(() => {
-      fs.unlinkSync(outputFile);
-    }, 60000); // Delete after 1 minute
-  });
-});
+//     // Optional cleanup
+//     setTimeout(() => {
+//       fs.unlinkSync(outputFile);
+//     }, 60000); // Delete after 1 minute
+//   });
+// });
 
 // Update a parent video object
 router.patch("/:id", async (req, res) => {
