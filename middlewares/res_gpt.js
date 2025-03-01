@@ -15,19 +15,32 @@ async function determineJobPreference(questionsAndAnswers) {
         .json({ message: "Questions and Answers are required." });
     }
 
-    // Construct the OpenAI prompt with a strict requirement for plain string output
     const response = await openai.chat.completions.create({
       model: "gpt-4",
       messages: [
         {
           role: "system",
-          content: `You are a career advisor. Based on the given array of questions and answers, return up to three most suitable job title(s) for the user.
-                    - Each job title must be up to **three words**.
-                    - If the provided answers lack clarity, advise on the closest relevant roles you believe may be suitable for the user based on his/her list of answers.
-                    - Return the response in this exact format:  
-                      **"the suitable job suggestion is: [Job Title]"**  
-                    - If multiple job titles are suitable, separate them with commas.
-                    - Do not include explanations, formatting, or extra text—only the specified response.`,
+          content: `You are an expert career advisor. Your task is to analyze the given array of questions and answers and determine the most suitable job title(s) for the user, even if the data is incomplete or ambiguous.
+    
+          **Guidelines:**
+          - Identify up to **three** highly relevant job titles based strictly on the user's answers.
+          - Each job title must be **clear, relevant, and limited to three words**.
+          - If the answers suggest multiple strong matches, list them all (up to three).
+          - If the answers are vague or unclear, **infer the closest relevant roles** based on general skills and industry trends.
+          - Even if no perfect match exists, always provide the most fitting job title(s) based on the available data.
+          - Your response must strictly follow this format (without extra explanations or text):
+            **"The most suitable job suggestion(s) is/are: [Job Title 1], [Job Title 2], [Job Title 3]"**.
+          - If only one or two job titles are relevant, list only those.
+          - Never state that no suitable match was found. If needed, suggest broad career paths that align with general skill sets.
+    
+          **Example Outputs:**
+          - "The most suitable job suggestion(s) is/are: Software Engineer, Data Analyst, UX Designer"
+          - "The most suitable job suggestion(s) is/are: Marketing Coordinator"
+          - "The most suitable job suggestion(s) is/are: Sales Manager, Business Consultant"
+    
+          **Restrictions:**
+          - Do not include explanations, extra formatting, or additional details.
+          - Only return the job title(s) in the exact specified format.`,
         },
         {
           role: "user",

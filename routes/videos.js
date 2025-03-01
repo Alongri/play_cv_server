@@ -44,11 +44,15 @@ router.post("/child", async (req, res) => {
     const newChild = new ChildModel(req.body);
     let dataChild = await newChild.save();
     video.childObjects.push(dataChild._id);
-    if (req.body.index == 11) {
+    if (req.body.index == 3) {
       const questionsAndAnswers = video.childObjects.map((obj) => ({
         question: obj.question,
         answer: obj.answer,
       }));
+
+      console.log(questionsAndAnswers);
+
+      
       const gptRecommend = await determineJobPreference(questionsAndAnswers);
       video.recommend = gptRecommend;
     }
