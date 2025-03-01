@@ -75,48 +75,34 @@ const bucket = apiStorage.bucket(bucketName);
 const upload = multer({ storage: multer.memoryStorage() });
 
 router.post("/uploadimage", upload.single("image"), async (req, res) => {
-  // Ensure a file is uploaded
   if (!req.file) {
     return res.status(400).send("No file uploaded.");
   }
-
   console.log("Original filename:", req.file.originalname);
 
-  // Sanitize the file name by removing special characters and trimming any trailing dots
   const sanitizedFileName = req.file.originalname
-    .replace(/[{}<>:"/\|?*\s]+/g, "") // Remove special characters and spaces
-    .replace(/\.+$/, ""); // Remove trailing dots
+    .replace(/[{}<>:"/\|?*\s]+/g, "")
+    .replace(/\.+$/, "");
 
   console.log("Sanitized filename:", sanitizedFileName);
-
   const destination = `uploads/${Date.now()}_${sanitizedFileName}`;
   console.log("Destination Path:", destination);
-
   try {
-    // Create a file object in the bucket
     const blob = bucket.file(destination);
-
-    // Create a write stream to upload the file to the bucket
     const blobStream = blob.createWriteStream({
       resumable: false,
       metadata: {
-        contentType: req.file.mimetype, // Ensure the correct MIME type is set for the uploaded file
+        contentType: req.file.mimetype,
       },
     });
-
-    // Handle stream errors
     blobStream.on("error", (err) => {
       console.error("Upload error:", err);
       return res.status(500).send("Upload error: " + err.message);
     });
-
-    // Handle successful file upload
     blobStream.on("finish", () => {
       const fileUrl = `https://storage.googleapis.com/${bucketName}/${destination}`;
       return res.json({ url: fileUrl });
     });
-
-    // Start the upload by passing the file buffer
     blobStream.end(req.file.buffer);
   } catch (error) {
     console.error("Error uploading file:", error);
@@ -144,17 +130,13 @@ router.patch("/child", async (req, res) => {
 
 // Update a specific child object by ID
 router.patch("/updatedchild", async (req, res) => {
-  // const { error } = validateChild(req.body);
-  // if (error) return res.status(400).json(error.details);
   try {
     console.log(req.body);
     let child = await ChildModel.findOne({ _id: req.body._id });
     console.log(child);
     if (!child) return res.status(404).json({ message: "Child not found!" });
     child.answer = req.body.answer;
-    // child.imageLink = req.body.imageLink;
-    ////
-    child.imageLink = "https://w.wallhaven.cc/full/o5/wallhaven-o5ov3l.jpg";
+    child.imageLink = req.body.imageLink;
     console.log(child);
 
     const updatedChild = await ChildModel.findByIdAndUpdate(
@@ -244,102 +226,6 @@ router.get("/childobjects/:id", auth, async (req, res) => {
     res.status(500).json({ message: "Internal server error" });
   }
 });
-
-// router.patch("/generate", async (req, res) => {
-//   try {
-//     // const childObjects = await ChildModel.find({ id_video: req.params.id });
-//     // if (!childObjects || childObjects.length === 0) {
-//     //   return res.status(404).json({ message: "Child not found!" });
-//     // }
-//     const data_check = req.body.ar;
-//     console.log(data_check);
-
-//     const filteredData = data_check.map(({ answer, imageLink }) => ({
-//       answer,
-//       imageLink,
-//     }));
-//     console.log(filteredData);
-
-//     if (filteredData.length === 0) {
-//       return res.status(400).json({ message: "No valid data found!" });
-//     }
-
-//     const outputFile = path.join(
-//       TEMP_FOLDER,
-//       `output_video_${req.body.ar[0]._id}.mp4`
-//     );
-//     const tempFolder = path.join(TEMP_FOLDER, `images_${req.body.ar[0]._id}`);
-//     if (!fs.existsSync(tempFolder)) fs.mkdirSync(tempFolder);
-
-//     const imagePaths = [];
-
-//     // Process each image: Add answer as overlay text
-//     await Promise.all(
-//       filteredData.map((item, index) => {
-//         return new Promise((resolve, reject) => {
-//           const tempImage = path.join(tempFolder, `temp_${index}.jpg`);
-//           imagePaths.push(tempImage);
-
-//           ffmpeg(item.imageLink)
-//             .outputOptions([
-//               `-vf drawtext="text='${item.answer}': fontcolor=white: fontsize=24: x=(w-text_w)/2: y=h-50"`,
-//               "-q:v 1",
-//             ])
-//             .output(tempImage)
-//             .on("end", resolve)
-//             .on("error", reject)
-//             .run();
-//         });
-//       })
-//     );
-
-//     // Create an input file for FFmpeg
-//     const inputFile = path.join(tempFolder, "input.txt");
-//     const inputContent = imagePaths
-//       .map((imgPath) => `file '${imgPath}'\nduration 3`)
-//       .join("\n");
-//     fs.writeFileSync(inputFile, inputContent);
-
-//     // Generate video from images
-//     ffmpeg()
-//       .input(inputFile)
-//       .inputOptions("-f concat -safe 0")
-//       .output(outputFile)
-//       .on("end", () => {
-//         console.log("Video generated successfully:", outputFile);
-//         res.status(200).json({ videoUrl: `/download/${req.params.id}` });
-//       })
-//       .on("error", (err) => {
-//         console.error("FFmpeg Error:", err);
-//         res.status(500).json({ error: "Error generating video" });
-//       })
-//       .run();
-//   } catch (err) {
-//     console.log(err);
-//     res.status(500).json({ error: err.message });
-//   }
-// });
-
-// // Serve video for download
-// router.get("/download/:id", (req, res) => {
-//   const outputFile = path.join(
-//     TEMP_FOLDER,
-//     `output_video_${req.params.id}.mp4`
-//   );
-
-//   if (!fs.existsSync(outputFile)) {
-//     return res.status(404).json({ message: "Video not found!" });
-//   }
-
-//   res.download(outputFile, `generated_video_${req.params.id}.mp4`, (err) => {
-//     if (err) console.error("Error sending video:", err);
-
-//     // Optional cleanup
-//     setTimeout(() => {
-//       fs.unlinkSync(outputFile);
-//     }, 60000); // Delete after 1 minute
-//   });
-// });
 
 // Update a parent video object
 router.patch("/:id", async (req, res) => {
