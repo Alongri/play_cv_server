@@ -14,6 +14,10 @@ const multer = require("multer");
 const ffmpeg = require("ffmpeg");
 const fs = require("fs");
 const { Storage } = require("@google-cloud/storage");
+const { analyzeCandidatePersonality } = require("../middlewares/analyzeCandidatePersonality");
+const { UserModel } = require("../models/userModel");
+
+
 
 const TEMP_FOLDER = "./uploads";
 if (!fs.existsSync(TEMP_FOLDER)) fs.mkdirSync(TEMP_FOLDER);
@@ -44,7 +48,7 @@ router.post("/child", async (req, res) => {
     const newChild = new ChildModel(req.body);
     let dataChild = await newChild.save();
     video.childObjects.push(dataChild._id);
-    if (req.body.index == 3) {
+    if (req.body.index == 5) {
       const questionsAndAnswers = video.childObjects.map((obj) => ({
         question: obj.question,
         answer: obj.answer,
@@ -246,6 +250,33 @@ router.patch("/:id", async (req, res) => {
     res.status(200).json(updatedVideo);
   } catch (err) {
     res.status(500).json(err.message);
+  }
+});
+
+router.get("/recommendation/personality/:videoId", async (req, res) => {
+  try {
+    const videoId = req.params.videoId.trim();
+
+    // 1. שליפת כל ChildObjects לפי הווידאו
+    const childObjects = await ChildModel.find({ id_video: videoId });
+    if (!childObjects.length) {
+      return res.status(404).json({ message: "No child responses found for this video" });
+    }
+
+    // 2. המרה למבנה של {question, answer}
+    const questionsAndAnswers = childObjects.map((child) => ({
+      question: child.question,
+      answer: child.answer,
+    }));
+
+    // 3. ניתוח עם GPT
+    const result = await analyzeCandidatePersonality(questionsAndAnswers);
+
+    // 4. החזרה ללקוח
+    res.json(result);
+  } catch (error) {
+    console.error("❌ Error in personality recommendation route:", error.message);
+    res.status(500).json({ error: "Internal Server Error" });
   }
 });
 

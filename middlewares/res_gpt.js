@@ -7,7 +7,6 @@ const openai = new OpenAI({
 
 async function determineJobPreference(questionsAndAnswers) {
   try {
-    // const { questionsAndAnswers } = req.body;
 
     if (!questionsAndAnswers || questionsAndAnswers.length === 0) {
       return res
