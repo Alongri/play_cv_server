@@ -20,7 +20,6 @@ router.get("/", authAdmin, async (req, res) => {
 
 // check if the user have a good token
 router.get("/checkToken", auth, async (req, res) => {
-  console.log("aaaaa");  
   res.json(true);
 });
 
@@ -229,5 +228,7 @@ router.delete("/:id", async (req, res) => {
     res.status(500).json({ message: error });
   }
 });
+
+// POST route to analyze based on user ID (assuming you fetch user's Q&A from DB)
 
 module.exports = router;
